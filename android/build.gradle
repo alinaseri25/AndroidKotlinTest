@@ -1,0 +1,79 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.6.0'
+        // 👇 اضافه کن
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25"
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+// 👇 بخش plugin رو اصلاح کن
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+// البته Qt خودش این مقدار رو برای qtGradlePluginType جایگزین می‌کنه
+apply plugin: qtGradlePluginType
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    implementation 'androidx.core:core:1.13.1'
+
+    // 👇 اضافه کن تا runtime kotlin هم همراه اپ بیاد
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.25"
+}
+
+android {
+    namespace androidPackageName
+    compileSdkVersion androidCompileSdkVersion
+    buildToolsVersion androidBuildToolsVersion
+    ndkVersion androidNdkVersion
+
+    packagingOptions.jniLibs.useLegacyPackaging true
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            // 👇 اینجا مطمئن شو پوشه اندروید تو مسیر Qt باشه
+            java.srcDirs = [qtAndroidDir + '/src', 'src', 'java']
+            aidl.srcDirs = [qtAndroidDir + '/src', 'src', 'aidl']
+            res.srcDirs = [qtAndroidDir + '/res', 'res']
+            resources.srcDirs = ['resources']
+            renderscript.srcDirs = ['src']
+            assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    // 👇 اگر Gradle 8 خطا داد، از این گزینه برای JDK 11 استفاده کن
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    aaptOptions {
+        noCompress 'rcc'
+    }
+
+    defaultConfig {
+        resConfig "en"
+        minSdkVersion qtMinSdkVersion
+        targetSdkVersion qtTargetSdkVersion
+        ndk.abiFilters = qtTargetAbiList.split(",")
+    }
+}
